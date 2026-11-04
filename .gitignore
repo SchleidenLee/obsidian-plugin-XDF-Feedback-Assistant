@@ -18,3 +18,27 @@ main.js
 # reset git after change
 # git rm -rf --cached .
 # git add .
+
+# build output（由 GitHub Release 分发，不入库）
+dist/
+
+# obsidian 运行时数据
+data.json
+
+# 只用 pnpm，忽略其它包管理器的锁文件
+yarn.lock
+package-lock.json
+bun.lock
+
+# 参考仓库，不入库
+references/
+
+# 本地垃圾
+*.log
+*.tmp
+*.bak
+*.db
+*.sqlite
+tmp/
+out/
+.DS_Store
