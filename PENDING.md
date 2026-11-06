@@ -10,7 +10,7 @@
 
 ## 🟢 进行中
 
-（无）
+（无。DOC-SYNC 已于 2026-11-06 完成并移入 DEVLOG。设置持久化、分组标题、插入静默失败均未改代码。）
 
 ---
 
@@ -28,15 +28,13 @@
   - 影响：按钮点了没反应，用户无法判断是没点中还是插件坏了。
   - 方案：改用 `getActiveViewOfType(MarkdownView)` 或缓存「最后一次活动的 MarkdownView」；取不到时 `new Notice('未找到可插入的编辑器')`。
 
-- [ ] **版本号三处不一致** — `manifest.json:4` / `package.json:3` / `versions.json`
-  - 状态：**已于 2026-10-16 修复**（见 DEVLOG）；保留此条仅作记录，若再次不一致可参照处理。
-  - 方案：统一三处版本号并补 `versions.json` 条目。
+- [x] **版本号三处不一致** — 2026-10-16 已修复（`manifest` / `package.json` / `versions.json` 均为 `0.1.2`，见 DEVLOG）。2026-11-06 复核 HEAD 仍一致。不再作为开放缺陷。
 
 ### A. 代码审查整改（中）
 
 - [ ] **Alt+Q 弹窗渲染超长模板文本且每次按键重算** — `src/CommandListView.ts:11-33`、`src/templates.ts:48-77`
   - 现象：每个候选项用 `textDiv.setText(item.text)` 渲染整段模板正文（单条可达上千字符）；`getSuggestions` 每次按键都 `getAllItems()` 全量重建再 `includes` 过滤。
-  - 影响：弹窗卡顿、行高失控；`includes` 是子串匹配而非模糊搜索，跳字符输入搜不到。
+  - 影响：弹窗卡顿、行高失控。README 已按源码改为「子串匹配」；跳字符模糊搜索仍未实现。
   - 方案：建议行只渲染 `item.label`（正文改截断预览）；`getAllItems()` 结果模块级缓存；搜索换用子序列模糊匹配。
 
 - [ ] **两个校验脚本已失效** — `verify_templates.js:3-7`、`verify_text.js:3-7`
@@ -85,4 +83,7 @@
 
 ## ⚪ 待定
 
-（无）
+### 历史 tag 前缀（等用户确认，不在本批处理）
+
+- 本地仍能看到无 `v` 前缀的历史 tag：`0.4.1`、`0.4.0`、`0.3.2`、`0.3.1` 等。当前发布 tag 是 `v0.1.2`。
+- 是否清理只等用户确认。本条不建议删除，也不执行删除。

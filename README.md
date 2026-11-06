@@ -22,7 +22,7 @@
 
 ### 快捷键命令选择器
 
-默认快捷键 `ALT+Q` 打开模糊搜索弹窗，输入关键字即可在全部模板条目中搜索（匹配名称与内容），回车插入到光标位置，全程无需离开键盘。
+默认快捷键 `ALT+Q` 打开搜索弹窗。匹配方式是名称与正文的**大小写不敏感子串**（`includes`），不是跳字模糊搜索；回车插入到光标位置。
 
 可在 Obsidian 的快捷键设置中自定义快捷键。
 
@@ -36,14 +36,14 @@
 ## 开发
 
 ```bash
-# 安装依赖
-npm install
+# 安装依赖（仓库使用 pnpm-lock.yaml，没有 npm lockfile）
+pnpm install
 
 # 开发模式（监听文件变化，直接输出到本地 Vault 的 .obsidian/plugins/ 目录）
-npm run dev
+pnpm run dev
 
-# 生产构建（输出到根目录 dist/）
-npm run build
+# 生产构建（输出到 dist/：main.js、manifest.json、styles.css）
+pnpm run build
 ```
 
 ## 项目结构
@@ -52,7 +52,7 @@ npm run build
 ├── src/                     # 插件源码
 │   ├── main.ts              # 入口：视图注册、快捷键、设置
 │   ├── SidePanelControlView.ts  # 侧边栏面板 UI
-│   ├── CommandListView.ts   # Alt+Q 模糊搜索弹窗
+│   ├── CommandListView.ts   # Alt+Q 子串搜索弹窗
 │   ├── templates.ts         # 模板数据模型与聚合
 │   ├── templates-class.ts   # 班级类模板
 │   ├── templates-student.ts # 学员类模板
@@ -71,7 +71,8 @@ npm run build
 
 ## 设置
 
-- **Side Pane Side**：侧边栏面板显示在左侧还是右侧（默认右侧）
+- **Side Pane Side**：界面仍是英文文本框，填写 `left` 才把侧边栏放到左侧，其他值都当右侧。默认右侧。
+- **持久化有缺陷，尚未修复**：`loadSettings` 把读到的数据写进模块级 `DEFAULT_SETTINGS`，不是复制到新对象。文本框显示 `left` / `right`，但保存值是布尔 `sidePaneSideLeft`，重开设置页时文本框不会按布尔值回写成 `left` 或 `right`。版本号三处不一致已在 2026-10-16 修复，与本项无关。
 
 ## License
 

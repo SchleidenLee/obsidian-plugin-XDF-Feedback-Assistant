@@ -34,7 +34,7 @@ Obsidian 教学反馈撰写辅助插件（id `xdf-feedback-assistant`，`isDeskt
 |------|------|--------|
 | `src/main.ts` | 加载/保存设置；`registerView` 注册侧边栏视图；Ribbon 图标；`Open Command Selector` 命令（Alt+Q）；设置页 | `onunload()` 为空（未 detach 视图，见 PENDING） |
 | `src/SidePanelControlView.ts` | 侧边栏面板：顶部 Tab 切分类、子 Tab 切小节；递归渲染 group / subgroup / dimension / item 按钮；点击插入文本 | 含分组标题渲染分支与扁平化分支（当前存在缺陷，见 PENDING） |
-| `src/CommandListView.ts` | `CodeSuggestionModal`：全量模板模糊筛选 + 回车插入 | 当前每次按键 `getAllItems()` 全量重建 + `includes` 匹配（见 PENDING） |
+| `src/CommandListView.ts` | `CodeSuggestionModal`：全量模板子串筛选 + 回车插入 | 当前每次按键 `getAllItems()` 全量重建；`label`/`text` 用 `includes`，不是模糊子序列（见 PENDING） |
 | `src/templates.ts` | 定义 `Category / Section / DisplayGroup / SubGroup / EvalDimension / TemplateItem`；聚合三大类模板；`getAllItems()` 展平 | 数据模型入口 |
 | `src/templates-class.ts` | 班级类模板（出勤、纪律、课堂氛围、课堂表现、作业、当堂练习） | 区分「整体 / 个人」维度 |
 | `src/templates-student.ts` | 学员类模板（出勤、入门测、课堂表现、作业、题型） | 多个小节为「纯分组、无维度」结构 |
@@ -57,7 +57,7 @@ Obsidian 教学反馈撰写辅助插件（id `xdf-feedback-assistant`，`isDeskt
 ```
 
 - **插入路径**：侧边栏走 `SidePanelControlView.insertText`（取当前活动编辑器后 `editor.replaceSelection`）；命令选择器走 `Editor.replaceSelection`。
-- **无持久化**：插件不产生数据文件；模板全部硬编码在 `templates-*.ts` 中。
+- **模板无独立数据文件**：全部硬编码在 `templates-*.ts`。插件设置写入 Obsidian `data.json`，但 `loadSettings` 直接 `Object.assign(DEFAULT_SETTINGS, ...)`，会污染模块级默认对象（见 PENDING，未修）。
 
 ## 5. 模板数据模型
 
@@ -74,8 +74,8 @@ Category  { id, label, sections: Section[] }
 
 ## 6. 构建与发布
 
-- 构建：`npm run build` = `rollup --config rollup.production.config.js` → `dist/`（`main.js` / `manifest.json` / `styles.css`）。
-- 开发：`npm run dev`（rollup watch，输出到本地 Vault 插件目录）。
+- 构建：`pnpm run build` = `rollup --config rollup.production.config.js` → `dist/`（`main.js` / `manifest.json` / `styles.css`）。仓库使用 `pnpm-lock.yaml`。
+- 开发：`pnpm run dev`（rollup watch，输出到本地 Vault 插件目录）。
 - 发布：`.github/workflows/release.yml` 由 tag `v*` 触发，校验 `package.json` / `manifest.json` / tag 三者版本一致后构建发布，release notes 自动生成。
 - 版本号需一致：`package.json` / `manifest.json` / `versions.json` / release tag。
 
