@@ -16,6 +16,18 @@
 
 ## 🟡 已定待做
 
+### C. 新版 Obsidian 下插件加载失败（2026-11-16，等用户确认动手）
+
+- **现象**：Obsidian 更新后启用插件报 `Plugin failure: xdf-feedback-assistant TypeError: Class constructor Ax cannot be invoked without 'new' at new TextInsertPlugin (plugin:xdf-feedback-assistant:1019:47)`，插件完全无法加载。
+- **根因（已证实）**：`tsconfig.json` `target: "es5"`，编译产物用 `__extends` + `_super.apply(this, arguments)` 模拟类继承（`dist/main.js:1016-1019`，与报错行列号完全吻合）。新版 Obsidian 的 `Plugin` 等 API 基类是原生 ES6 class，原生 class 不允许以普通函数方式调用，故构造即抛错。旧版 Obsidian 自身代码为 ES5 转译产物所以此前兼容。
+- **方案**：`tsconfig.json` 的 `target` 改为 `es2018`，`lib` 相应改为 `["dom", "es2018"]`；`src/` 业务代码不动；`pnpm run build` 重建 `dist/`。两个 rollup 配置均直接读 tsconfig，无需改构建脚本。
+- **涉及文件**：`tsconfig.json`；构建产物 `dist/main.js`（dist 已不在版本库内）。
+- **验收标准**：
+  1. 新 `dist/main.js` 中类定义为原生 `class ... extends`，不再出现 `__extends` / `_super.apply`；
+  2. 构建无报错；
+  3. 用户把新 `main.js` 放入 Vault 插件目录后，新版 Obsidian 启用插件不再报 Plugin failure，侧边栏面板能打开、Alt+Q 弹窗能弹出并插入文本（真实环境验证由用户执行）。
+- **风险**：极低。仅改编译目标，不改逻辑；Obsidian 桌面/移动端均为现代 Chromium，支持 ES2018。本轮不修 PENDING 既有旧缺陷（插入静默失败等），不动版本号与发布流程；是否发新版由用户另行决定。
+
 ### A. 代码审查整改（严重 / 高）
 
 - [ ] **纯条目小节的「分组标题」被错误丢弃（核心可用性缺陷）** — `src/SidePanelControlView.ts:133-160`
@@ -82,6 +94,18 @@
 ---
 
 ## ⚪ 待定
+
+### FUTURE-FA. Feedback Assistant 重构意向（2026-11-08，未定方案、未实施）
+
+- **用户期望**：插件可能需要重构；当前只登记意向，不等于批准整体重写或自动执行上方旧整改清单。
+- **现状依据**：`src/templates.ts` 定义分类 / 小节 / 分组 / 条目等模板层级，内容聚合自 `templates-class.ts`、`templates-student.ts`、`templates-content.ts`；侧边栏与 Alt+Q 搜索是两种插入入口，设置由 `src/main.ts` 加载和保存。
+- **候选路线**：先厘清实际使用不顺手之处，再决定局部整理或结构重构。可研究把模板数据、搜索 / 插入逻辑、面板渲染分开维护，共用条目索引与插入入口，减少不同入口行为不一致；不是要求本次修旧 Bug。
+- **待确认**：重构解决的首要问题；保留哪些现有交互；模板是否继续随插件内置、是否允许用户编辑；临时复制粘贴板已由用户决定归入独立的复杂排版片段新插件，不纳入本插件重构；新插件方向暂记根目录 `PROGRESS.md` 第五节第 3 项。
+- **涉及文件（候选）**：`src/main.ts`、`src/SidePanelControlView.ts`、`src/CommandListView.ts`、`src/templates.ts`、`src/templates-*.ts`、`styles.css`；只有模板格式改变时才考虑迁移入口。
+- **候选验收**：现有三类模板的分类与正文不丢失；侧边栏和 Alt+Q 按最终确认的交互正确插入目标笔记；旧设置可继续加载。新增模板编辑 / 数据迁移仅在用户批准后另补验收标准。
+- **风险与非目标**：模板丢失、插入错误目标、旧设置不兼容是实际回归风险；不默认引入 LLM、云服务、数据库或新框架，不借重构清理全部历史问题。
+- **难度**：局部整理中等；可编辑模板及数据迁移会显著增加范围，当前不能估算整体重写成本。
+- **统一设置页**：沿用上方 B 条目，跨插件规范与共享样式入口见根目录 `PROGRESS.md` 第五节；最终样板和纳入范围待确认，本次不修改设置代码。
 
 ### 历史 tag 前缀（等用户确认，不在本批处理）
 
