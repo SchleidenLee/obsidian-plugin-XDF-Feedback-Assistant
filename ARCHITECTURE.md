@@ -75,6 +75,7 @@ Category  { id, label, sections: Section[] }
 ## 6. 构建与发布
 
 - 构建：`pnpm run build` = `rollup --config rollup.production.config.js` → `dist/`（`main.js` / `manifest.json` / `styles.css`）。仓库使用 `pnpm-lock.yaml`。
+- 编译目标：`es2018`（2026-11-16 起，v0.1.3）。**不得回退 es5**：es5 转译的模拟继承在新版 Obsidian 原生 class 基类下加载即抛错（见 DEVLOG）。
 - 开发：`pnpm run dev`（rollup watch，输出到本地 Vault 插件目录）。
 - 发布：`.github/workflows/release.yml` 由 tag `v*` 触发，校验 `package.json` / `manifest.json` / tag 三者版本一致后构建发布，release notes 自动生成。
 - 版本号需一致：`package.json` / `manifest.json` / `versions.json` / release tag。

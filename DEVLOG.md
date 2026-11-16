@@ -5,6 +5,15 @@
 
 ---
 
+## 2026-11-16 · 修复新版 Obsidian 加载失败，发布 v0.1.3（用户实机验收通过）
+
+- **改了什么**：`tsconfig.json` target `es5` → `es2018`、lib → `["dom","es2018"]`；版本 0.1.2 → 0.1.3（`package.json` / `manifest.json` / `versions.json`，minAppVersion 不变）；重建 dist。`src/` 业务代码零改动。提交 a41009b，tag v0.1.3，CI 自动发布。
+- **为什么**：新版 Obsidian 的 `Plugin` 等 API 基类改为原生 ES6 class；es5 转译产物用 `_super.apply` 模拟继承，加载即抛 `Class constructor Ax cannot be invoked without 'new'`（报错行列 1019:47 与旧产物逐字吻合），插件完全无法启用。
+- **验证**：本地 `pnpm run build` 成功；新旧产物对比 `__extends`/`_super.apply` 从多处降为 0，四个类均为原生 `class ... extends obsidian.*`；`node --check` 通过；Release 产物下载复查同样干净；用户更新 v0.1.3 后实机确认侧边栏与 Alt+Q 正常（2026-11-16）。
+- **备注**：本轮实现工程师派单失败，由 Lead 按同一方案执行并验证，未做独立 QA 复核。构建时 references/ 上游参考代码有既有类型警告（不进产物，未处理）。其他五个自研插件编译目标均 ≥ es6，排查无同类隐患。
+
+---
+
 ## 2026-11-06 · 文档与源码对齐（未改代码、未发布）
 
 - README：Alt+Q 从「模糊搜索」改为名称/正文的大小写不敏感子串匹配；设置节写明 `loadSettings` 污染默认对象，以及文本框与布尔值不回写。
