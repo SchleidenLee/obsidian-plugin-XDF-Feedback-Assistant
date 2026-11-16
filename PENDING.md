@@ -10,23 +10,18 @@
 
 ## 🟢 进行中
 
-（无。DOC-SYNC 已于 2026-11-06 完成并移入 DEVLOG。设置持久化、分组标题、插入静默失败均未改代码。）
+### C. 新版 Obsidian 下插件加载失败（2026-11-16，代码已完成，待真实环境验收）
+
+- **现象**：Obsidian 更新后启用插件报 `Plugin failure: xdf-feedback-assistant TypeError: Class constructor Ax cannot be invoked without 'new' at new TextInsertPlugin (plugin:xdf-feedback-assistant:1019:47)`，插件完全无法加载。
+- **根因（已证实）**：`tsconfig.json` `target: "es5"`，编译产物用 `__extends` + `_super.apply(this, arguments)` 模拟类继承（旧 `dist/main.js:1016-1019`，与报错行列号完全吻合）。新版 Obsidian 的 `Plugin` 等 API 基类是原生 ES6 class，不允许以普通函数方式调用，故构造即抛错。
+- **已完成改动**：`tsconfig.json` target → `es2018`、lib → `["dom","es2018"]`；版本 0.1.2 → 0.1.3（`package.json` / `manifest.json` / `versions.json`，minAppVersion 不变）；重建 `dist/`。`src/` 业务代码零改动。
+- **本地验证证据（2026-11-16）**：`pnpm run build` 成功（created dist in 7.9s，仅 references/ 上游参考代码的既有类型警告，不进产物）；新 `dist/main.js` 中 `__extends` / `_super.apply` / `_super.call` 出现 0 次，四个类均为原生 `class ... extends obsidian.*`；`node --check dist/main.js` 通过；三处版本号一致 0.1.3。
+- **待验收（用户真实环境）**：从 v0.1.3 Release 更新插件后，新版 Obsidian 启用不再报 Plugin failure，侧边栏面板能打开、Alt+Q 能弹出并插入文本。验收通过后删除本条并记 DEVLOG。
+- **备注**：本轮实现工程师派单失败，由 Lead 按同一方案与验收标准直接执行；未做独立 QA 复核，机械验证证据如上。
 
 ---
 
 ## 🟡 已定待做
-
-### C. 新版 Obsidian 下插件加载失败（2026-11-16，等用户确认动手）
-
-- **现象**：Obsidian 更新后启用插件报 `Plugin failure: xdf-feedback-assistant TypeError: Class constructor Ax cannot be invoked without 'new' at new TextInsertPlugin (plugin:xdf-feedback-assistant:1019:47)`，插件完全无法加载。
-- **根因（已证实）**：`tsconfig.json` `target: "es5"`，编译产物用 `__extends` + `_super.apply(this, arguments)` 模拟类继承（`dist/main.js:1016-1019`，与报错行列号完全吻合）。新版 Obsidian 的 `Plugin` 等 API 基类是原生 ES6 class，原生 class 不允许以普通函数方式调用，故构造即抛错。旧版 Obsidian 自身代码为 ES5 转译产物所以此前兼容。
-- **方案**：`tsconfig.json` 的 `target` 改为 `es2018`，`lib` 相应改为 `["dom", "es2018"]`；`src/` 业务代码不动；`pnpm run build` 重建 `dist/`。两个 rollup 配置均直接读 tsconfig，无需改构建脚本。
-- **涉及文件**：`tsconfig.json`；构建产物 `dist/main.js`（dist 已不在版本库内）。
-- **验收标准**：
-  1. 新 `dist/main.js` 中类定义为原生 `class ... extends`，不再出现 `__extends` / `_super.apply`；
-  2. 构建无报错；
-  3. 用户把新 `main.js` 放入 Vault 插件目录后，新版 Obsidian 启用插件不再报 Plugin failure，侧边栏面板能打开、Alt+Q 弹窗能弹出并插入文本（真实环境验证由用户执行）。
-- **风险**：极低。仅改编译目标，不改逻辑；Obsidian 桌面/移动端均为现代 Chromium，支持 ES2018。本轮不修 PENDING 既有旧缺陷（插入静默失败等），不动版本号与发布流程；是否发新版由用户另行决定。
 
 ### A. 代码审查整改（严重 / 高）
 
